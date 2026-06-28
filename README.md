@@ -18,7 +18,7 @@ Install this package into the active Perl:
 cpanm .
 ```
 
-Sync the shared profiles and author tests into a repo:
+Sync the shared profiles and author tests into some repos:
 
 ```bash
 ./tools/sync-configs /path/to/perl-repo /path/to/another-perl-repo
