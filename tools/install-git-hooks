@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+style_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+hooks_path="$style_root/configs/git-hooks"
+
+if [ "$#" -eq 0 ]; then
+  echo "usage: $0 REPO_DIR [REPO_DIR ...]" >&2
+  exit 2
+fi
+
+for repo_arg in "$@"; do
+  repo_root=$(git -C "$repo_arg" rev-parse --show-toplevel 2>/dev/null) || {
+    echo "not a git repo: $repo_arg" >&2
+    exit 1
+  }
+  repo_name=$(basename "$repo_root")
+
+  git -C "$repo_root" config core.hooksPath "$hooks_path"
+  echo "$repo_name: core.hooksPath=$hooks_path"
+done

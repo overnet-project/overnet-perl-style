@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(git rev-parse --show-toplevel)
+style_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)
+cd "$repo_root"
+
+perlcritic_bin=${PERLCRITIC:-perlcritic}
+perlcritic_profile=${OVERNET_PERLCRITIC_PROFILE:-.perlcriticrc}
+
+if [ ! -f "$perlcritic_profile" ]; then
+  echo "pre-commit: missing Perl::Critic profile: $perlcritic_profile" >&2
+  exit 1
+fi
+
+if ! command -v "$perlcritic_bin" >/dev/null 2>&1; then
+  echo "pre-commit: perlcritic not found: $perlcritic_bin" >&2
+  echo "pre-commit: install Perl::Critic or set PERLCRITIC=/path/to/perlcritic" >&2
+  exit 1
+fi
+
+lint_paths=()
+while IFS= read -r -d '' path; do
+  case "$path" in
+    local/*|blib/*|_eumm/*)
+      continue
+      ;;
+  esac
+
+  [ -f "$path" ] || continue
+  lint_paths+=("$path")
+done < <(
+  git diff --cached --name-only -z --diff-filter=ACMR -- \
+    '*.pm' '*.pl' '*.t' '*.PL'
+)
+
+if [ "${#lint_paths[@]}" -eq 0 ]; then
+  exit 0
+fi
+
+echo "pre-commit: running Perl::Critic on ${#lint_paths[@]} Perl path(s) staged for commit"
+echo "pre-commit: profile $perlcritic_profile"
+
+export PERL5LIB="$style_root/lib${PERL5LIB:+:$PERL5LIB}"
+"$perlcritic_bin" \
+  --profile "$perlcritic_profile" \
+  --verbose '%f:%l:%c:%p:%m\n' \
+  "${lint_paths[@]}"

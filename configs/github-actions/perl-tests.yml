@@ -1,0 +1,23 @@
+name: perl-tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          cpanm --installdeps .
+          cpanm /path/to/overnet-perl-style
+
+      - name: Run tests
+        run: |
+          prove -r -l -v t/
+          prove -r -l -v xt/author/
