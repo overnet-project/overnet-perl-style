@@ -1,13 +1,12 @@
 # overnet-perl-style
 
-Shared Perl::Critic, Perl::Tidy, author-test, hook, and CI tooling for Overnet
-Perl repositories.
+Shared [Perl::Critic](https://metacpan.org/pod/Perl::Critic), [Perl::Tidy](https://metacpan.org/pod/Perl::Tidy), author tests, hooks, and CI tooling for Overnet Perl repositories.
 
 This keeps the separate Overnet Perl codebases on the same style and quality contract.
 
 ## Layout
 
-- [`configs/`](configs/) - shared configs, hooks, author-test templates, and CI examples.
+- [`configs/`](configs/) - shared configs, hooks, author test templates, and CI examples.
 - [`lib/Perl/Critic/Policy/Overnet/`](lib/Perl/Critic/Policy/Overnet/) - custom Perl::Critic policies.
 - [`tools/`](tools/) - scripts that sync or install the shared configs.
 
@@ -39,8 +38,6 @@ Install the shared local pre-commit hook:
 
 ## Notes
 
-- Style and POD gates belong in `xt/author/`, not normal install tests under
-  `t/`.
-- [`tools/sync-configs`](tools/sync-configs) copies configs and author-test templates; it does not
-  install the custom policy modules.
+- Style and POD gates belong in `xt/author/`, not normal install tests under `t/`.
+- [`tools/sync-configs`](tools/sync-configs) copies configs and author test templates; it does not install the custom policy modules.
 - [`Makefile.PL`](Makefile.PL) is this repo's package metadata and a useful template shape for other Overnet Perl repos.
