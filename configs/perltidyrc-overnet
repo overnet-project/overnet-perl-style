@@ -1,8 +1,4 @@
-# Overnet Perl::Tidy profile.
-#
-# This is intentionally conservative: it standardizes indentation, line length,
-# brace placement, and common whitespace without trying to encode every style
-# preference in perltidy.
+# Overnet Perl::Tidy configuration.
 
 -i=2
 -ci=2

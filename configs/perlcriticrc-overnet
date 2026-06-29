@@ -1,3 +1,5 @@
+# Overnet Perl::Critic configuration.
+
 [Perl::Critic::Policy::Overnet::RequireStrictures2]
 severity   = 5
 
