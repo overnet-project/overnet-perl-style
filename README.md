@@ -35,6 +35,8 @@ Install the shared local pre-commit hook:
 - [`RequireStrictures2`](lib/Perl/Critic/Policy/Overnet/RequireStrictures2.pm) requires `use strictures 2;`.
 - [`RequireJSONEmptyImport`](lib/Perl/Critic/Policy/Overnet/RequireJSONEmptyImport.pm) requires `use JSON ();` when JSON is imported.
 - [`RequireTest2InTests`](lib/Perl/Critic/Policy/Overnet/RequireTest2InTests.pm) requires `.t` files to use `Test2::V0` and prohibits `Test::More`.
+- [`ProhibitBless`](lib/Perl/Critic/Policy/Overnet/ProhibitBless.pm) prohibits direct `bless` calls so Overnet OO code uses Moo-owned construction instead of hand-rolled blessed objects.
+- [`ProhibitNewConstructor`](lib/Perl/Critic/Policy/Overnet/ProhibitNewConstructor.pm) prohibits defining constructors with `sub new` or installing them through `*new = ...`; normal `Class->new(...)` calls remain allowed.
 
 ## Notes
 
