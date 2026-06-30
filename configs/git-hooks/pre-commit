@@ -5,7 +5,13 @@ repo_root=$(git rev-parse --show-toplevel)
 style_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)
 cd "$repo_root"
 
-perlcritic_bin=${PERLCRITIC:-perlcritic}
+perlcritic_bin=${PERLCRITIC:-}
+if [ -z "$perlcritic_bin" ]; then
+  perlcritic_bin=$(git config --get overnet.perlcritic.bin || true)
+fi
+if [ -z "$perlcritic_bin" ]; then
+  perlcritic_bin=perlcritic
+fi
 perlcritic_profile=${OVERNET_PERLCRITIC_PROFILE:-.perlcriticrc}
 
 if [ ! -f "$perlcritic_profile" ]; then
@@ -15,7 +21,7 @@ fi
 
 if ! command -v "$perlcritic_bin" >/dev/null 2>&1; then
   echo "pre-commit: perlcritic not found: $perlcritic_bin" >&2
-  echo "pre-commit: install Perl::Critic or set PERLCRITIC=/path/to/perlcritic" >&2
+  echo "pre-commit: install Perl::Critic, set PERLCRITIC=/path/to/perlcritic, or set git config overnet.perlcritic.bin" >&2
   exit 1
 fi
 
