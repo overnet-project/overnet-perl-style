@@ -26,6 +26,7 @@ if ! command -v "$perlcritic_bin" >/dev/null 2>&1; then
 fi
 
 lint_paths=()
+test_paths=()
 while IFS= read -r -d '' path; do
   case "$path" in
     local/*|blib/*|_eumm/*)
@@ -34,21 +35,40 @@ while IFS= read -r -d '' path; do
   esac
 
   [ -f "$path" ] || continue
-  lint_paths+=("$path")
+  case "$path" in
+    *.t)
+      test_paths+=("$path")
+      ;;
+    *)
+      lint_paths+=("$path")
+      ;;
+  esac
 done < <(
   git diff --cached --name-only -z --diff-filter=ACMR -- \
     '*.pm' '*.pl' '*.t' '*.PL'
 )
 
-if [ "${#lint_paths[@]}" -eq 0 ]; then
+if [ "${#lint_paths[@]}" -eq 0 ] && [ "${#test_paths[@]}" -eq 0 ]; then
   exit 0
 fi
 
-echo "pre-commit: running Perl::Critic on ${#lint_paths[@]} Perl path(s) staged for commit"
 echo "pre-commit: profile $perlcritic_profile"
 
 export PERL5LIB="$style_root/lib${PERL5LIB:+:$PERL5LIB}"
-"$perlcritic_bin" \
-  --profile "$perlcritic_profile" \
-  --verbose '%f:%l:%c:%p:%m\n' \
-  "${lint_paths[@]}"
+if [ "${#lint_paths[@]}" -gt 0 ]; then
+  echo "pre-commit: running Perl::Critic on ${#lint_paths[@]} Perl source path(s) staged for commit"
+  "$perlcritic_bin" \
+    --profile "$perlcritic_profile" \
+    --verbose '%f:%l:%c:%p:%m\n' \
+    "${lint_paths[@]}"
+fi
+
+if [ "${#test_paths[@]}" -gt 0 ]; then
+  echo "pre-commit: checking ${#test_paths[@]} staged test path(s) for Test2::V0"
+  "$perlcritic_bin" \
+    --profile "$perlcritic_profile" \
+    --single-policy Overnet::RequireTest2InTests \
+    --only \
+    --verbose '%f:%l:%c:%p:%m\n' \
+    "${test_paths[@]}"
+fi
