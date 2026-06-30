@@ -214,9 +214,6 @@ severity   = 5
 [Perl::Critic::Policy::Modules::RequireNoMatchVarsWithUseEnglish]
 severity   = 5
 
-[Perl::Critic::Policy::Modules::RequireVersionVar]
-severity   = 5
-
 [Perl::Critic::Policy::NamingConventions::ProhibitAmbiguousNames]
 severity   = 5
 
