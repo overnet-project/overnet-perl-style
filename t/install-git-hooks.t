@@ -69,8 +69,16 @@ print {$test_fh} "use strictures 2;\nuse Test::More;\ndone_testing;\n";
 close $test_fh
   or die "Cannot close hook test target";
 
+mkdir "$hook_repo_root/t"
+  or die "Cannot create test helper directory";
+open my $helper_fh, '>', "$hook_repo_root/t/hook-helper.pl"
+  or die "Cannot create hook test helper";
+print {$helper_fh} "use strictures 2;\n";
+close $helper_fh
+  or die "Cannot close hook test helper";
+
 system( 'git', '-C', $hook_repo_root, 'add', '.perlcriticrc', 'hook-target.pl',
-    'hook-target.t' ) == 0
+    'hook-target.t', 't/hook-helper.pl' ) == 0
   or die "Cannot stage hook target";
 
 my $cwd       = getcwd();
@@ -100,5 +108,7 @@ like $args, qr/\Q--single-policy\E\n\QOvernet::RequireTest2InTests\E/xm,
 like $args, qr/\Q--only\E/xm,
   'test file policy invocation is limited to explicitly selected policy';
 like $args, qr/\Qhook-target.t\E/xm, 'perlcritic receives staged test path';
+unlike $args, qr{\Qt/hook-helper.pl\E}xm,
+  'pre-commit skips Perl helpers under test directories';
 
 done_testing();

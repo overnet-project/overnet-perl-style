@@ -39,6 +39,9 @@ while IFS= read -r -d '' path; do
     *.t)
       test_paths+=("$path")
       ;;
+    t/*|xt/*)
+      continue
+      ;;
     *)
       lint_paths+=("$path")
       ;;
