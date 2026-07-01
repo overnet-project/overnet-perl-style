@@ -10,18 +10,18 @@ open my $handle, '<', $profile
 
 my @severity_lines;
 my %configured_policy;
-while (my $line = <$handle>) {
-  push @severity_lines, $line if $line =~ /\Aseverity\s*=/xm;
+while ( my $line = <$handle> ) {
+    push @severity_lines, $line if $line =~ /\Aseverity\s*=/xm;
 
-  if ($line =~ /\A\[Perl::Critic::Policy::(.+)\]\s*\z/xm) {
-    $configured_policy{$1} = 1;
-  }
+    if ( $line =~ /\A\[Perl::Critic::Policy::(.+)\]\s*\z/xm ) {
+        $configured_policy{$1} = 1;
+    }
 }
 
 ok @severity_lines, 'perlcritic profile has severity entries';
 
 for my $line (@severity_lines) {
-  like $line, qr/\Aseverity\s*=\s*5\s*\z/xm, 'perlcritic severity is 5';
+    like $line, qr/\Aseverity\s*=\s*5\s*\z/xm, 'perlcritic severity is 5';
 }
 
 my @required_policies = qw(
@@ -66,10 +66,11 @@ my @required_policies = qw(
   Variables::ProhibitReusedNames
   Variables::ProhibitUnusedVariables
   Variables::RequireLocalizedPunctuationVars
+  Overnet::RequireMooConstructorArgsNormalization
 );
 
 for my $policy (@required_policies) {
-  ok $configured_policy{$policy}, "$policy is configured";
+    ok $configured_policy{$policy}, "$policy is configured";
 }
 
 my @excluded_policies = qw(
@@ -83,7 +84,7 @@ my @excluded_policies = qw(
 );
 
 for my $policy (@excluded_policies) {
-  ok !$configured_policy{$policy}, "$policy is not configured";
+    ok !$configured_policy{$policy}, "$policy is not configured";
 }
 
 done_testing();

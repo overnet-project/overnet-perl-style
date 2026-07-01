@@ -37,6 +37,7 @@ Install the shared local pre-commit hook:
 - [`RequireTest2InTests`](lib/Perl/Critic/Policy/Overnet/RequireTest2InTests.pm) requires `.t` files to use `Test2::V0` and prohibits `Test::More`.
 - [`ProhibitBless`](lib/Perl/Critic/Policy/Overnet/ProhibitBless.pm) prohibits direct `bless` calls so Overnet OO code uses Moo-owned construction instead of hand-rolled blessed objects.
 - [`ProhibitNewConstructor`](lib/Perl/Critic/Policy/Overnet/ProhibitNewConstructor.pm) prohibits defining constructors with `sub new` or installing them through `*new = ...`; normal `Class->new(...)` calls remain allowed.
+- [`RequireMooConstructorArgsNormalization`](lib/Perl/Critic/Policy/Overnet/RequireMooConstructorArgsNormalization.pm) prohibits destructuring `BUILDARGS` or `around new` constructor wrapper arguments directly into `%args`; capture `@args` first so Moo's hashref constructor form stays supported.
 
 ## Notes
 

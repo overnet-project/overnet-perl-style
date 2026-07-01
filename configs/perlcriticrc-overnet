@@ -15,6 +15,9 @@ severity   = 5
 [Perl::Critic::Policy::Overnet::ProhibitNewConstructor]
 severity   = 5
 
+[Perl::Critic::Policy::Overnet::RequireMooConstructorArgsNormalization]
+severity   = 5
+
 [Perl::Critic::Policy::BuiltinFunctions::ProhibitBooleanGrep]
 severity   = 5
 
