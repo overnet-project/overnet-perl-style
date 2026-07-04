@@ -44,3 +44,7 @@ Install the shared local pre-commit hook:
 - Style and POD gates belong in `xt/author/`, not normal install tests under `t/`.
 - [`tools/sync-configs`](tools/sync-configs) copies configs and author test templates; it does not install the custom policy modules.
 - [`Makefile.PL`](Makefile.PL) is this repo's package metadata and a useful template shape for other Overnet Perl repos.
+
+## AI Usage
+
+This code was developed in part with AI tooling such as Claude Code and Codex. We want to be upfront about that.
