@@ -42,6 +42,7 @@ Install the shared local pre-commit hook:
 ## Notes
 
 - Style and POD gates belong in `xt/author/`, not normal install tests under `t/`.
+- The [`devel-cover.t`](configs/test-templates/xt/author/devel-cover.t) template is an opt-in [Devel::Cover](https://metacpan.org/pod/Devel::Cover) gate: it runs only when `OVERNET_COVERAGE=1` is set and enforces per-file floors over `lib/` of 85% statement, 60% branch, and 90% subroutine coverage. Repos below a floor set `OVERNET_COVERAGE_MIN_STATEMENT`, `OVERNET_COVERAGE_MIN_BRANCH`, or `OVERNET_COVERAGE_MIN_SUBROUTINE` in their coverage CI job as a ratchet and raise them as coverage improves; the synced template itself must stay unedited.
 - [`tools/sync-configs`](tools/sync-configs) copies configs and author test templates; it does not install the custom policy modules.
 - [`Makefile.PL`](Makefile.PL) is this repo's package metadata and a useful template shape for other Overnet Perl repos.
 
