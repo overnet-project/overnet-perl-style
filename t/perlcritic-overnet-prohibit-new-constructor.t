@@ -5,8 +5,17 @@ use Test2::V0;
 use lib 't/lib';
 
 use OvernetPerlCriticPolicyTest qw(has_policy);
+use Perl::Critic::Policy::Overnet::ProhibitNewConstructor;
+use Perl::Critic::Utils qw(:severities);
 
 my $new_policy = 'Perl::Critic::Policy::Overnet::ProhibitNewConstructor';
+
+is $new_policy->default_severity, $SEVERITY_HIGHEST,
+  'the Overnet constructor policy defaults to the highest severity';
+is [$new_policy->default_themes], [qw(overnet bugs)],
+  'the Overnet constructor policy uses the overnet and bugs themes';
+is [$new_policy->applies_to], [qw(PPI::Statement::Sub PPI::Token::Symbol)],
+  'the Overnet constructor policy applies to sub statements and symbol tokens';
 
 ok !has_policy("use strictures 2;\nuse Moo;\nhas name => (is => 'ro');\n1;\n", $new_policy),
   'Moo-generated constructors satisfy the Overnet constructor policy';
@@ -31,5 +40,7 @@ ok !has_policy("use strictures 2;\nmy \$name = 'sub new';\n# sub new in comments
   'sub new in strings and comments does not violate the Overnet constructor policy';
 ok !has_policy("use strictures 2;\nmy \$has_new = defined *new{CODE};\n1;\n", $new_policy),
   'typeglob introspection for new does not violate the Overnet constructor policy';
+ok !has_policy("use strictures 2;\n*new", $new_policy),
+  'a trailing bare typeglob for new does not violate the Overnet constructor policy';
 
 done_testing();

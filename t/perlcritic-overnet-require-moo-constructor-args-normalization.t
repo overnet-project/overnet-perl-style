@@ -5,9 +5,18 @@ use Test2::V0;
 use lib 't/lib';
 
 use OvernetPerlCriticPolicyTest qw(has_policy);
+use Perl::Critic::Policy::Overnet::RequireMooConstructorArgsNormalization;
+use Perl::Critic::Utils qw(:severities);
 
 my $policy =
   'Perl::Critic::Policy::Overnet::RequireMooConstructorArgsNormalization';
+
+is $policy->default_severity, $SEVERITY_HIGHEST,
+  'the constructor args policy defaults to the highest severity';
+is [ $policy->default_themes ], [qw(overnet bugs)],
+  'the constructor args policy uses the overnet and bugs themes';
+is [ $policy->applies_to ], [qw(PPI::Statement::Sub PPI::Statement)],
+  'the constructor args policy applies to sub statements and statements';
 
 ok !has_policy(
 "use strictures 2;\nuse Moo;\nsub BUILDARGS {\n  my (\$class, \@args) = \@_;\n  my %args = _constructor_args_hash(\@args);\n  return \\%args;\n}\n1;\n",
@@ -98,5 +107,53 @@ ok !has_policy(
     $policy,
   ),
   'strings and comments do not violate the constructor args policy';
+
+ok !has_policy(
+    "use strictures 2;\nuse Moo;\nsub BUILDARGS;\n1;\n",
+    $policy,
+  ),
+  'BUILDARGS forward declarations have no block to inspect';
+
+ok !has_policy(
+"use strictures 2;\nuse Moo;\naround [qw(open close)] => sub {\n  my (\$orig, \$class, %args) = \@_;\n  return \$class->\$orig(%args);\n};\n1;\n",
+    $policy,
+  ),
+  'around wrappers for methods other than new may use %args';
+
+ok has_policy(
+"use strictures 2;\nuse Moo;\naround [ new ] => sub {\n  my (\$orig, \$class, %args) = \@_;\n  return \$class->\$orig(%args);\n};\n1;\n",
+    $policy,
+  ),
+  'bareword arrayref around new is covered';
+
+ok has_policy(
+"use strictures 2;\nuse Moo;\naround [ 'new' ] => sub {\n  my (\$orig, \$class, %args) = \@_;\n  return \$class->\$orig(%args);\n};\n1;\n",
+    $policy,
+  ),
+  'quoted arrayref around new is covered';
+
+ok !has_policy(
+"use strictures 2;\nuse Moo;\nmy \$method = 'new';\naround \$method => sub {\n  my (\$orig, \$class, %args) = \@_;\n  return \$class->\$orig(%args);\n};\n1;\n",
+    $policy,
+  ),
+  'dynamic around targets are not treated as constructor wrappers';
+
+ok !has_policy(
+"use strictures 2;\nuse Moo;\nsub BUILDARGS {\n  my (\$class, \@args) = \@_;\n  sub _args_hash {\n    my %args = \@_;\n    return \\%args;\n  }\n  return _normalize(\@args);\n}\n1;\n",
+    $policy,
+  ),
+  'nested named subs inside BUILDARGS are not constructor arg normalization';
+
+ok !has_policy(
+"use strictures 2;\nuse Moo;\nsub BUILDARGS {\n  our %args = \@_;\n  return \\%args;\n}\n1;\n",
+    $policy,
+  ),
+  'only my declarations of %args are treated as normalization bypasses';
+
+ok !has_policy(
+"use strictures 2;\nuse Moo;\nsub BUILDARGS {\n  my (\$class, \@args) = \@_;\n  my %args;\n  return _normalize(\@args, \\%args);\n}\n1;\n",
+    $policy,
+  ),
+  'declarations of %args without an assignment are allowed';
 
 done_testing();
