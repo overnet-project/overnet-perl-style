@@ -27,5 +27,6 @@ like $content, qr/File::Spec->updir/xm,
   'the work tree sits beside the repo so sibling-relative paths still resolve';
 like $content, qr/\QResult:\E/xm,   'the Devel::Mutator result line is parsed';
 like $content, qr/\$survivors/xm,   'surviving mutants are counted and gated';
+like $content, qr/baseline/xm,      'the unmutated suite is checked green before mutating';
 
 done_testing();
