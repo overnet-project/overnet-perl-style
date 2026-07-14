@@ -11,7 +11,7 @@ our $VERSION = '0.001';
 
 my $DESC = 'Normalize Moo constructor arguments before using %args';
 my $EXPL =
-'Moo constructors must preserve the documented hashref form, so BUILDARGS and around new wrappers must capture @_ as @args before normalization';
+"Moo constructors must preserve the documented hashref form, so BUILDARGS and around new wrappers must capture \@_ as \@args before normalization";
 
 sub default_severity { return $SEVERITY_HIGHEST }
 sub default_themes   { return qw(overnet bugs) }
@@ -149,20 +149,20 @@ sub _assigns_raw_at_underscore_to_hash_args {
   my $assignment_index;
   for my $index (0 .. $#tokens) {
     if ( $tokens[$index]->isa('PPI::Token::Operator')
-      && $tokens[$index]->content eq '=') {
+      && $tokens[$index]->content eq q{=}) {
       $assignment_index = $index;
       last;
     }
   }
   return 0 if !defined $assignment_index;
 
-  my @left  = @tokens[1 .. $assignment_index - 1];
-  my @right = @tokens[$assignment_index + 1 .. $#tokens];
+  my @lhs_tokens = @tokens[1 .. $assignment_index - 1];
+  my @rhs_tokens = @tokens[$assignment_index + 1 .. $#tokens];
 
   return 0
-    if !any { $_->isa('PPI::Token::Symbol') && $_->content eq '%args' } @left;
+    if !any { $_->isa('PPI::Token::Symbol') && $_->content eq '%args' } @lhs_tokens;
   return 0
-    if !any { $_->isa('PPI::Token::Magic') && $_->content eq '@_' } @right;
+    if !any { $_->isa('PPI::Token::Magic') && $_->content eq "\@_" } @rhs_tokens;
 
   return 1;
 }

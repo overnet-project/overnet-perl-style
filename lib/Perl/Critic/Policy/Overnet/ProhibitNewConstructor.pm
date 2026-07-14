@@ -31,7 +31,7 @@ sub _defines_new_constructor {
   }
 
   return 0 if $element->content !~ /\A\*(?:[^:]+::)*new\z/smx;
-  return _next_significant_content($element) eq '=' ? 1 : 0;
+  return _next_significant_content($element) eq q{=} ? 1 : 0;
 }
 
 sub _next_significant_content {

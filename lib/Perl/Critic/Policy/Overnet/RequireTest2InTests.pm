@@ -19,18 +19,18 @@ sub violates {
 
   my $includes = $document->find('PPI::Statement::Include') || [];
   for my $include (@{$includes}) {
-    next unless ($include->type || '') eq 'use';
+    next if ($include->type || q{}) ne 'use';
     return $self->violation($DESC, $EXPL, $include)
-      if (($include->module || '') eq 'Test::More');
+      if (($include->module || q{}) eq 'Test::More');
   }
 
-  my $filename = $document->filename || '';
-  return unless $filename =~ /[.]t\z/xm;
+  my $filename = $document->filename || q{};
+  return if $filename !~ /[.]t\z/smx;
 
   for my $include (@{$includes}) {
-    next unless $include->parent->isa('PPI::Document');
-    next unless ($include->type || '') eq 'use';
-    return if (($include->module || '') eq 'Test2::V0');
+    next   if !$include->parent->isa('PPI::Document');
+    next   if ($include->type || q{}) ne 'use';
+    return if (($include->module || q{}) eq 'Test2::V0');
   }
 
   return $self->violation($DESC, $EXPL, _first_statement_or_document($document));

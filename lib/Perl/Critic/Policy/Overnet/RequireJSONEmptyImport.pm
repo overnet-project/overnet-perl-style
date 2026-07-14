@@ -17,9 +17,9 @@ sub applies_to       { return 'PPI::Statement::Include' }
 sub violates {
   my ($self, $include, undef) = @_;
 
-  return unless ($include->type || '') eq 'use';
-  return unless (($include->module || '') eq 'JSON');
-  return if $include->content =~ /\Ause\s+JSON\s*\(\s*\)\s*;\z/mx;
+  return if ($include->type || q{}) ne 'use';
+  return if (($include->module || q{}) ne 'JSON');
+  return if $include->content =~ /\Ause\s+JSON\s*\(\s*\)\s*;\z/smx;
 
   return $self->violation($DESC, $EXPL, $include);
 }

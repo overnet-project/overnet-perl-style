@@ -17,15 +17,15 @@ sub applies_to       { return 'PPI::Document' }
 sub violates {
   my ($self, undef, $document) = @_;
 
-  my $filename = $document->filename || '';
-  return if $filename =~ m{(?:\A|/)Makefile[.]PL\z}xm;
+  my $filename = $document->filename || q{};
+  return if $filename =~ m{(?:\A|/)Makefile[.]PL\z}smx;
 
   my $includes = $document->find('PPI::Statement::Include') || [];
   for my $include (@{$includes}) {
-    next unless $include->parent->isa('PPI::Document');
-    next unless ($include->type || '') eq 'use';
-    next unless (($include->module || $include->pragma || '') eq 'strictures');
-    return if $include->content =~ /\Ause\s+strictures\s+2\s*;\z/mx;
+    next   if !$include->parent->isa('PPI::Document');
+    next   if ($include->type || q{}) ne 'use';
+    next   if (($include->module || $include->pragma || q{}) ne 'strictures');
+    return if $include->content =~ /\Ause\s+strictures\s+2\s*;\z/smx;
   }
 
   return $self->violation($DESC, $EXPL, _first_statement_or_document($document));
