@@ -58,6 +58,10 @@ jobs:
         run: |
           prove -r -l -v t/
 
+      - name: Run author tests
+        run: |
+          prove -r -l -v xt/author/
+
   devel-cover:
     runs-on: ubuntu-latest
     name: Devel::Cover gate
