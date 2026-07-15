@@ -156,4 +156,40 @@ ok !has_policy(
   ),
   'declarations of %args without an assignment are allowed';
 
+ok !has_policy(
+"use strictures 2;\nuse Moo;\naround configure => sub {\n  my (\$orig, \$class, %args) = \@_;\n  return \$class->\$orig(%args);\n};\n1;\n",
+    $policy,
+  ),
+  'around wrappers for non-new barewords may use %args';
+
+ok !has_policy(
+"use strictures 2;\nuse Moo;\nbefore new => sub {\n  my (\$orig, \$class, %args) = \@_;\n  return;\n};\n1;\n",
+    $policy,
+  ),
+  'before new modifiers are not treated as constructor wrappers';
+
+ok !has_policy(
+"use strictures 2;\nuse Moo;\naround [ close ] => sub {\n  my (\$orig, \$class, %args) = \@_;\n  return \$class->\$orig(%args);\n};\n1;\n",
+    $policy,
+  ),
+  'bareword arrayref around a non-new method is not covered';
+
+ok !has_policy(
+"use strictures 2;\nuse Moo;\nsub BUILDARGS {\n  my (\$class, \@args) = \@_;\n  my \$count = %args + \@_;\n  return {};\n}\n1;\n",
+    $policy,
+  ),
+  'the %args symbol must be on the assignment left-hand side to violate';
+
+ok !has_policy(
+"use strictures 2;\nuse Moo;\nsub BUILDARGS {\n  my %args = (name => \$0);\n  return \\%args;\n}\n1;\n",
+    $policy,
+  ),
+  'assigning %args from magic vars other than \@_ is not a normalization bypass';
+
+ok has_policy(
+"use strictures 2;\nuse Moo;\nsub BUILDARGS {\n  do {\n    my %args = \@_;\n  };\n  return {};\n}\n1;\n",
+    $policy,
+  ),
+  'direct %args assignment inside a do block still violates';
+
 done_testing();
