@@ -27,13 +27,15 @@ like $content, qr/\QOVERNET_MUTATION_TEST_COMMAND\E/xm, 'the per-mutant test com
 like $content, qr/tempdir/xm,                           'the run is isolated in a throwaway work tree';
 like $content, qr/File::Spec->updir/xm, 'the work tree sits beside the repo so sibling-relative paths still resolve';
 like $content, qr/\QResult:\E/xm,   'the Devel::Mutator result line is parsed';
-like $content, qr/\$survivors/xm,   'surviving mutants are counted and gated';
+like $content, qr/\@survivors/xm,   'surviving mutants are counted and gated';
+like $content, qr/\QOVERNET_MUTATION_ALLOW\E/xm, 'reviewed survivors are pinned in an allowlist';
+like $content, qr/\@unreviewed/xm,  'only unreviewed survivors fail the gate';
 like $content, qr/baseline/xm,      'the unmutated suite is checked green before mutating';
 
 # --- Behavioural checks: actually run the template against a controlled dist. ---
 SKIP: {
   my $have = eval { require Devel::Mutator; require Capture::Tiny; 1 };
-  skip 'Devel::Mutator is not installed; skipping functional mutation checks', 5
+  skip 'Devel::Mutator is not installed; skipping functional mutation checks', 8
     if !$have;
 
   my $base    = tempdir(CLEANUP => 1);
@@ -44,13 +46,24 @@ SKIP: {
   my ($strong_out, $strong_exit) = _run_template($fixture, 'prove -Ilib t/strong.t');
   is $strong_exit, 0, 'template passes when a strong suite kills every mutant'
     or diag $strong_out;
-  like $strong_out, qr/surviving \s mutants \s \(0\)/xm, 'a strong suite leaves no survivors';
+  like $strong_out, qr/unreviewed \s surviving \s mutants \s \(0\)/xm, 'a strong suite leaves no survivors';
 
   # A weak suite executes the code but asserts nothing discriminating, so mutants
   # survive and the template fails -- this is the whole point of the tool.
   my ($weak_out, $weak_exit) = _run_template($fixture, 'prove -Ilib t/weak.t');
   isnt $weak_exit, 0, 'template fails when a weak suite lets mutants survive';
-  like $weak_out, qr/surviving \s mutants \s \([1-9]/xm, 'a weak suite leaves survivors';
+  like $weak_out, qr/unreviewed \s surviving \s mutants \s \([1-9]/xm, 'a weak suite leaves survivors';
+
+  # The survivor report must emit paste-ready blocks, and feeding those exact
+  # blocks back as the allowlist must make the gate accept them -- proving the
+  # emit format equals the accept format, so a reviewer's paste always matches.
+  my @blocks = _extract_survivor_blocks($weak_out);
+  is scalar(@blocks), 3, 'the survivor report lists each mutant as a paste-ready block';
+  _write("$fixture/xt/author/mutation-allow.txt", join("\n\n", @blocks) . "\n");
+  my ($allow_out, $allow_exit) = _run_template($fixture, 'prove -Ilib t/weak.t');
+  is $allow_exit, 0, 'allowlisting the reviewed survivors makes the gate pass'
+    or diag $allow_out;
+  like $allow_out, qr/allowlisted/xm, 'accepted survivors are reported as allowlisted';
 
   # A red baseline must be rejected, not reported as a clean (zero-survivor) pass.
   my ($bad_out, undef) = _run_template($fixture, 'prove -Ilib t/bad.t');
@@ -126,6 +139,28 @@ sub _run_template {
     system $^X, "$fixture/xt/author/mutation.t";
   });
   return ($output, $status >> 8);
+}
+
+# Pull the paste-ready survivor blocks back out of the gate's failure diag. The
+# gate prints each unreviewed survivor as consecutive "-"/"+" diff lines (carried
+# through Test2 diag, so each is prefixed with "# "); a run of them separated by
+# any non-diff line is one block. This mirrors what a reviewer would copy out of
+# the terminal, so feeding the result straight back as the allowlist proves the
+# emit format and the accept format are the same format.
+sub _extract_survivor_blocks {
+  my ($out) = @_;
+  my (@blocks, @cur);
+  for my $line (split /\n/, $out) {
+    if ($line =~ /^\#\s?([-+].*)$/) {
+      push @cur, $1;
+    }
+    elsif (@cur) {
+      push @blocks, join("\n", @cur);
+      @cur = ();
+    }
+  }
+  push @blocks, join("\n", @cur) if @cur;
+  return @blocks;
 }
 
 sub _write {
